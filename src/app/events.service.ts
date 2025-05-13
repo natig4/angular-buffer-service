@@ -33,7 +33,7 @@ export interface IEventDto {
   providedIn: 'root',
 })
 export class EventsService {
-  // Configuration options with defaults
+  // Configuration options with defaults - DELAY is public so components can access the buffer timing
   public DELAY = 5000; // Time in ms to wait before sending a batch
   private EVENTS_COUNT_BEFORE_SEND = 100; // Number of events to collect before sending
 
@@ -49,6 +49,9 @@ export class EventsService {
   totalEventsProcessed = signal(0);
   totalBatchesSent = signal(0);
   isProcessingBatch = signal(false);
+
+  // Last event time tracking
+  private lastEventTimestamp = Date.now();
 
   constructor() {
     // Set up the buffering pipeline
@@ -111,6 +114,7 @@ export class EventsService {
    * @param event The event to send
    */
   send(event: IEventDto) {
+    this.lastEventTimestamp = Date.now();
     this.eventsSubject.next(event);
   }
 
@@ -136,5 +140,16 @@ export class EventsService {
   flushBuffer() {
     // Create an empty event to trigger the bufferWhen logic
     this.send({ name: '_flush', data: -1 });
+  }
+
+  /**
+   * Get the time remaining until the next batch send (based on inactivity)
+   * This is useful for UI components that want to display a countdown
+   * @returns Time in milliseconds until next batch send
+   */
+  getTimeUntilNextBatch(): number {
+    const now = Date.now();
+    const elapsed = now - this.lastEventTimestamp;
+    return Math.max(0, this.DELAY - elapsed);
   }
 }
