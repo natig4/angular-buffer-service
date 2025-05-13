@@ -2,12 +2,7 @@
   <div class="stat-box">
     <strong>Click Count:</strong> {{ dataService.count() }}
   </div>
-  <div class="stat-box">
-    <strong
-      >Clicks Per {{ (dataService.timeFrame / 1000).toFixed(1) }}s:</strong
-    >
-    {{ dataService.clicksPerTimeFrame() }}
-  </div>
+
   <div class="stat-box">
     <strong>Events in Queue:</strong> {{ dataService.queuedEvents() }}
   </div>

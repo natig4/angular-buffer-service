@@ -21,7 +21,6 @@ export class DataService {
   // Signals for application state
   count = signal(0);
   queuedEvents = signal(0);
-  clicksPerTimeFrame = signal(0);
   timeUntilSend = signal(this.timeFrame);
   isProcessingBatch = signal(false);
   totalEventsProcessed = signal(0);
@@ -32,8 +31,9 @@ export class DataService {
   // Timer management
   private clickTimes: number[] = [];
   private timerSubscription?: Subscription;
+  private bufferSizeSubscription?: Subscription;
+  private clicksSubscription?: Subscription;
   private lastEventTime = Date.now();
-  private hasFirstEvent = false;
   private timerActive = false;
 
   // Computed values
@@ -53,14 +53,18 @@ export class DataService {
       this.totalBatchesSent.set(this.eventsService.totalBatchesSent());
     });
 
+    // Subscribe to buffer size changes directly from the service
+    this.bufferSizeSubscription = this.eventsService.bufferSize$.subscribe(
+      (size) => {
+        this.queuedEvents.set(size);
+      }
+    );
+
     // Subscribe to the events service to get buffered events
     this.eventsService.bufferedEvents$.subscribe((events) => {
       if (events.length) {
         // Add the batch event to the log
         this.addBatchEvent(events.length);
-
-        // Reset queue count
-        this.queuedEvents.set(0);
 
         // Update metrics
         this.updateAverageBatchSize(events.length);
@@ -73,8 +77,9 @@ export class DataService {
     // Initialize the timer
     this.startTimer();
 
-    // Update clicks per second every timeFrame
-    setInterval(() => this.updateClicksPerSecond(), this.timeFrame);
+    this.clicksSubscription = interval(this.timeFrame).subscribe(() => {
+      this.updateClicksPerSecond();
+    });
   }
 
   submitEvent(eventType: string): void {
@@ -107,11 +112,17 @@ export class DataService {
   }
 
   flushBuffer(): void {
-    // Add flush event to log
-    this.addEventToLog('flush', this.count());
+    // Only log a flush event if there are actually events to flush
+    if (this.queuedEvents() > 0) {
+      // Add flush event to log
+      this.addEventToLog('flush', this.queuedEvents());
 
-    // Force service to process events immediately
-    this.eventsService.flushBuffer();
+      // Force service to process events immediately
+      this.eventsService.flushBuffer();
+    } else {
+      // Log an informational event that the buffer was already empty
+      this.addEventToLog('flush-empty', 0);
+    }
   }
 
   updateConfig(config: { timeFrame: number; bufferSize: number }): void {
@@ -128,6 +139,11 @@ export class DataService {
 
     // Add to log
     this.addEventToLog('config', this.count());
+  }
+
+  private synchronizeQueuedEvents(): void {
+    // This method is no longer needed since we're using a subscription
+    // to the bufferSize$ observable. Keeping it as a stub for backward compatibility.
   }
 
   private startTimer(): void {
@@ -154,7 +170,6 @@ export class DataService {
   private startTimerCycle(): void {
     this.lastEventTime = Date.now();
     this.timerActive = true;
-    this.hasFirstEvent = true;
   }
 
   private resetTimerState(): void {
@@ -201,12 +216,6 @@ export class DataService {
     const now = Date.now();
     // Keep only clicks from last minute
     this.clickTimes = this.clickTimes.filter((time) => now - time < 60000);
-
-    // Calculate clicks in the last timeFrame
-    const clicksLastTimeFrame = this.clickTimes.filter(
-      (time) => now - time < this.timeFrame
-    ).length;
-    this.clicksPerTimeFrame.set(clicksLastTimeFrame);
   }
 
   private updateAverageBatchSize(latestBatchSize: number): void {
@@ -226,6 +235,14 @@ export class DataService {
   cleanup(): void {
     if (this.timerSubscription) {
       this.timerSubscription.unsubscribe();
+    }
+
+    if (this.bufferSizeSubscription) {
+      this.bufferSizeSubscription.unsubscribe();
+    }
+
+    if (this.clicksSubscription) {
+      this.clicksSubscription.unsubscribe();
     }
   }
 }

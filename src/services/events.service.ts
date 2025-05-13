@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import {
+  BehaviorSubject,
   bufferCount,
   bufferWhen,
   delay,
@@ -40,10 +41,16 @@ export class EventsService {
   // Internal subjects for event handling
   private eventsSubject = new Subject<IEventDto>();
   private bufferedEventsSubject = new Subject<IEventDto[]>();
+  private flushSubject = new Subject<void>(); // For flush operations
+  private bufferSizeSubject = new BehaviorSubject<number>(0); // For tracking buffer size
+
+  // Current buffer state (to hold events until they're sent)
+  private currentBuffer: IEventDto[] = [];
 
   // Public observables
   eventsObs$ = this.eventsSubject.asObservable();
   bufferedEvents$ = this.bufferedEventsSubject.asObservable();
+  bufferSize$ = this.bufferSizeSubject.asObservable();
 
   // Signals for status tracking
   totalEventsProcessed = signal(0);
@@ -57,7 +64,13 @@ export class EventsService {
     // Set up the buffering pipeline
     this.eventsSubject
       .pipe(
-        // Buffer events based on either time delay or count threshold
+        // Store events in our currentBuffer variable
+        tap((event) => {
+          this.currentBuffer.push(event);
+          this.lastEventTimestamp = Date.now();
+          this.bufferSizeSubject.next(this.currentBuffer.length);
+        }),
+        // Buffer events based on either time delay, count threshold, or explicit flush
         bufferWhen(() =>
           race([
             // Condition 1: Time-based buffer - triggers after DELAY ms of inactivity
@@ -65,6 +78,9 @@ export class EventsService {
 
             // Condition 2: Count-based buffer - triggers after collecting EVENTS_COUNT_BEFORE_SEND events
             this.eventsSubject.pipe(bufferCount(this.EVENTS_COUNT_BEFORE_SEND)),
+
+            // Condition 3: Manual flush trigger
+            this.flushSubject.asObservable(),
           ])
         ),
         // Skip empty batches
@@ -77,6 +93,10 @@ export class EventsService {
 
             // Notify subscribers about the batch
             this.bufferedEventsSubject.next(events);
+
+            // Clear the current buffer as we've processed these events
+            this.currentBuffer = [];
+            this.bufferSizeSubject.next(0);
           }
         }),
         // Here we would typically send the events to a backend
@@ -114,7 +134,6 @@ export class EventsService {
    * @param event The event to send
    */
   send(event: IEventDto) {
-    this.lastEventTimestamp = Date.now();
     this.eventsSubject.next(event);
   }
 
@@ -136,10 +155,18 @@ export class EventsService {
 
   /**
    * Force the service to process any pending events immediately
+   * This will immediately flush the current buffer without adding any additional events
    */
   flushBuffer() {
-    // Create an empty event to trigger the bufferWhen logic
-    this.send({ name: '_flush', data: -1 });
+    // Only trigger a flush if we have events to process
+    if (this.currentBuffer.length > 0) {
+      console.log(
+        `Manual flush triggered with ${this.currentBuffer.length} events in buffer`
+      );
+      this.flushSubject.next();
+    } else {
+      console.log('Flush requested but buffer is empty');
+    }
   }
 
   /**
@@ -151,5 +178,13 @@ export class EventsService {
     const now = Date.now();
     const elapsed = now - this.lastEventTimestamp;
     return Math.max(0, this.DELAY - elapsed);
+  }
+
+  /**
+   * Get the current number of events in the buffer
+   * @returns Number of events waiting to be sent
+   */
+  getCurrentBufferSize(): number {
+    return this.currentBuffer.length;
   }
 }

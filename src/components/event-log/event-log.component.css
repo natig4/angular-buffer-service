@@ -94,6 +94,10 @@ h2 {
   background-color: #8e44ad;
 }
 
+.flush-empty .event-type {
+  background-color: #95a5a6;
+}
+
 .count {
   margin-left: auto;
   font-weight: bold;
