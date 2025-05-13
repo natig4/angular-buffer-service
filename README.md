@@ -1,59 +1,196 @@
-# AngularBufferService
+# Angular Buffer Service Demo
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.11.
+A demonstration application showcasing a reactive buffering pattern for handling high-frequency events in Angular applications using RxJS.
 
-## Development server
+![Angular Buffer Service Demo Screenshot](https://natig4.github.io/angular-buffer-service/)
 
-To start a local development server, run:
+## Overview
 
-```bash
-ng serve
+This project demonstrates a powerful pattern for efficiently handling high-frequency events in Angular applications. The buffer service aggregates events over time and processes them in batches, which is ideal for:
+
+- Analytics tracking with reduced network overhead
+- User interaction events (clicks, form changes, etc.)
+- Telemetry data collection
+- Any scenario where you want to batch events for performance
+
+## Features
+
+- **Time-based buffering**: Automatically sends events after a configurable period of inactivity
+- **Count-based buffering**: Sends events when a specific number has accumulated
+- **Manual flush control**: Force the buffer to process pending events immediately
+- **Real-time visualizations**: See the buffer filling and timer countdown
+- **Configurable settings**: Adjust buffer size and time parameters
+- **Comprehensive metrics**: Track events processed, batch sizes, and processing status
+
+## Core Technology
+
+The heart of this project is the `EventsService` which leverages RxJS operators to efficiently manage event buffering:
+
+- `bufferWhen`: Dynamically determines when to buffer events
+- `race`: Allows multiple conditions to trigger a buffer flush
+- `tap` and `switchMap`: Process events in a reactive pipeline
+- Angular Signals: Provide reactive state management throughout the application
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm (v8 or higher)
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/natig4/angular-buffer-service.git
+   cd angular-buffer-service
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+
+   ```bash
+   ng serve
+   ```
+
+4. Open your browser and navigate to `http://localhost:4200`
+
+## How It Works
+
+The demo allows you to generate three types of events (Primary, Secondary, and Tertiary) by clicking buttons. These events are sent to the `EventsService`, which buffers them based on:
+
+1. **Time threshold**: Events are automatically sent after a configurable period (default: 5 seconds) of inactivity
+2. **Count threshold**: Events are sent when a certain number accumulate (default: 100 events)
+3. **Manual flush**: You can force the buffer to send events immediately with the "Flush Buffer Now" button
+
+The UI visualizes:
+
+- Current buffer fill level
+- Time remaining until automatic send
+- Event log showing individual events and batches
+- Service metrics (events processed, batches sent, etc.)
+
+## Using the Buffer Service in Your Own Projects
+
+The `EventsService` is designed to be reusable in your own Angular applications. Here's how to implement it:
+
+### 1. Copy the EventsService
+
+Add the `events.service.ts` file to your project's services folder.
+
+### 2. Inject and Configure the Service
+
+```typescript
+import { Component, inject } from "@angular/core";
+import { EventsService } from "./services/events.service";
+
+@Component({
+  selector: "app-root",
+  template: "...",
+})
+export class AppComponent {
+  private eventsService = inject(EventsService);
+
+  constructor() {
+    // Configure the buffer service
+    this.eventsService.configure({
+      delay: 3000, // 3 seconds inactivity before sending
+      batchSize: 50, // Send after 50 events
+    });
+  }
+
+  trackUserEvent(action: string) {
+    // Send event to buffer
+    this.eventsService.send({
+      name: action,
+      data: Date.now(),
+    });
+  }
+
+  forceSync() {
+    // Manually flush the buffer
+    this.eventsService.flushBuffer();
+  }
+}
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### 3. Subscribe to Batched Events
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```typescript
+ngOnInit() {
+  this.eventsService.bufferedEvents$.subscribe(events => {
+    // Process the batch of events
+    this.analyticsService.sendBatch(events);
+  });
+}
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Customization
 
-```bash
-ng generate --help
+### Buffer Service Configuration
+
+The service accepts the following configuration options:
+
+```typescript
+eventsService.configure({
+  delay: 5000, // Time in ms to wait before sending a batch (default: 5000)
+  batchSize: 100, // Number of events to collect before sending (default: 100)
+});
 ```
 
-## Building
+### Event Structure
 
-To build the project run:
+The demo uses a simple event structure, but you can customize this to fit your specific needs:
 
-```bash
-ng build
+```typescript
+// Example structure used in the demo
+interface IEventDto {
+  name: string; // Event name/type
+  data: number; // Event data
+}
+
+// You can replace this with your own structure
+interface YourCustomEventType {
+  eventType: string;
+  timestamp: Date;
+  userId: string;
+  properties: Record<string, any>;
+  // Any other fields you need
+}
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+The buffer service can work with any event structure - simply modify the generic type or interface to match your requirements.
 
-## Running unit tests
+## Architecture
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+The application is built with a modern Angular architecture:
 
-```bash
-ng test
-```
+- **Standalone Components**: Each UI element is an independent, reusable component
+- **Signal-based State Management**: Reactive state using Angular's signals API
+- **Service-Component Communication**: Clean separation of concerns between services and components
+- **Computed Values**: Derived state calculated from base signals
 
-## Running end-to-end tests
+## Contributing
 
-For end-to-end (e2e) testing, run:
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-```bash
-ng e2e
-```
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## License
 
-## Additional Resources
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Acknowledgments
+
+- The Angular team for creating an amazing framework
+- The RxJS team for powerful reactive extensions
