@@ -1,6 +1,43 @@
 <main class="main">
   <div class="content">
-    <p>this is example for the service</p>
-    <button (click)="click()">send event</button>
+    <h1>RxJS Buffer Service Demo</h1>
+
+    <div class="stats">
+      <div class="stat-box"><strong>Click Count:</strong> {{ count() }}</div>
+      <div class="stat-box">
+        <strong>Clicks Per {{ (timeFrame / 1000).toFixed(1) }} Seconds:</strong>
+        {{ clicksPerTimeFrame() }}
+      </div>
+      <div class="stat-box">
+        <strong>Events in Queue:</strong> {{ queuedEvents() }}
+      </div>
+    </div>
+
+    <div class="event-types">
+      <button (click)="sendClickEvent('primary')" class="btn primary">
+        Primary Click
+      </button>
+      <button (click)="sendClickEvent('secondary')" class="btn secondary">
+        Secondary Click
+      </button>
+      <button (click)="sendClickEvent('tertiary')" class="btn tertiary">
+        Tertiary Click
+      </button>
+    </div>
+
+    <div class="event-log">
+      <h2>Event Log</h2>
+      <div class="log-entries">
+        <div *ngFor="let entry of eventLog()" class="log-entry">
+          <span class="timestamp">{{
+            entry.timestamp | date : "HH:mm:ss.SSS"
+          }}</span>
+          <span class="event-type" [class]="entry.eventType">{{
+            entry.eventType
+          }}</span>
+          <span class="count">Count: {{ entry.count }}</span>
+        </div>
+      </div>
+    </div>
   </div>
 </main>

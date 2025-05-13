@@ -1,0 +1,101 @@
+.main {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.stat-box {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem;
+  flex: 1;
+  margin: 0 0.5rem;
+  text-align: center;
+  background-color: #f9f9f9;
+}
+
+.event-types {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.primary {
+  background-color: #3498db;
+  color: white;
+}
+
+.secondary {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.tertiary {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.event-log {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem;
+  height: 300px;
+  overflow-y: auto;
+}
+
+.log-entries {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.log-entry {
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+}
+
+.timestamp {
+  color: #777;
+  margin-right: 1rem;
+  font-family: monospace;
+}
+
+.event-type {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  color: white;
+  margin-right: 1rem;
+  min-width: 80px;
+  text-align: center;
+}
+
+.count {
+  margin-left: auto;
+}
