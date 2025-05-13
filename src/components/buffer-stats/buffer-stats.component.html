@@ -1,0 +1,16 @@
+<div class="stats">
+  <div class="stat-box"><strong>Click Count:</strong> {{ count }}</div>
+  <div class="stat-box">
+    <strong>Clicks Per {{ (timeFrame / 1000).toFixed(1) }}s:</strong>
+    {{ clicksPerTimeFrame }}
+  </div>
+  <div class="stat-box">
+    <strong>Events in Queue:</strong> {{ queuedEvents }}
+  </div>
+  <div class="stat-box">
+    <strong>Time Until Send:</strong>
+    <span [ngClass]="{ urgent: timeUntilSend < 1000 }"
+      >{{ (timeUntilSend / 1000).toFixed(1) }}s</span
+    >
+  </div>
+</div>

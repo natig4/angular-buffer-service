@@ -1,0 +1,24 @@
+<div class="event-log">
+  <div class="log-header">
+    <h2>Event Log</h2>
+    <div class="batch-indicator" *ngIf="isProcessingBatch">
+      Processing batch...
+    </div>
+  </div>
+  <div class="log-entries">
+    <div
+      *ngFor="let entry of eventLog"
+      class="log-entry"
+      [ngClass]="entry.eventType"
+    >
+      <span class="timestamp">{{
+        entry.timestamp | date : "HH:mm:ss.SSS"
+      }}</span>
+      <span class="event-type">{{ entry.eventType }}</span>
+      <span class="count">Count: {{ entry.count }}</span>
+    </div>
+    <div *ngIf="eventLog.length === 0" class="empty-log">
+      No events recorded yet.
+    </div>
+  </div>
+</div>

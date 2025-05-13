@@ -2,135 +2,51 @@
   <div class="content">
     <h1>RxJS Buffer Service Demo</h1>
 
-    <div class="stats">
-      <div class="stat-box"><strong>Click Count:</strong> {{ count() }}</div>
-      <div class="stat-box">
-        <strong>Clicks Per {{ (timeFrame / 1000).toFixed(1) }}s:</strong>
-        {{ clicksPerTimeFrame() }}
-      </div>
-      <div class="stat-box">
-        <strong>Events in Queue:</strong> {{ queuedEvents() }}
-      </div>
-      <div class="stat-box">
-        <strong>Time Until Send:</strong>
-        <span [ngClass]="{ urgent: timeUntilSend() < 1000 }"
-          >{{ (timeUntilSend() / 1000).toFixed(1) }}s</span
-        >
-      </div>
-    </div>
+    <!-- Stats Component -->
+    <app-buffer-stats
+      [count]="count()"
+      [timeFrame]="timeFrame"
+      [clicksPerTimeFrame]="clicksPerTimeFrame()"
+      [queuedEvents]="queuedEvents()"
+      [timeUntilSend]="timeUntilSend()"
+    >
+    </app-buffer-stats>
 
-    <div class="buffer-visualization">
-      <h2>Buffer Status</h2>
-      <div class="buffer-container">
-        <div
-          class="buffer-progress"
-          [style.width.%]="bufferFillPercentage()"
-        ></div>
-        <div class="buffer-label">
-          {{ queuedEvents() }} / {{ maxBufferSize }} events
-        </div>
-      </div>
-      <div class="timer-container">
-        <div class="timer-progress" [style.width.%]="timerPercentage()"></div>
-        <div class="timer-label">
-          {{ (timeUntilSend() / 1000).toFixed(1) }}s remaining
-        </div>
-      </div>
-    </div>
+    <!-- Visualization Component -->
+    <app-buffer-visualization
+      [queuedEvents]="queuedEvents()"
+      [maxBufferSize]="maxBufferSize"
+      [timeUntilSend]="timeUntilSend()"
+      [timeFrame]="timeFrame"
+      [bufferFillPercentage]="bufferFillPercentage()"
+      [timerPercentage]="timerPercentage()"
+    >
+    </app-buffer-visualization>
 
-    <div class="event-controls">
-      <div class="event-types">
-        <button (click)="sendClickEvent('primary')" class="btn primary">
-          Primary Click
-        </button>
-        <button (click)="sendClickEvent('secondary')" class="btn secondary">
-          Secondary Click
-        </button>
-        <button (click)="sendClickEvent('tertiary')" class="btn tertiary">
-          Tertiary Click
-        </button>
-      </div>
+    <!-- Controls Component -->
+    <app-event-controls
+      [timeFrame]="timeFrame"
+      [maxBufferSize]="maxBufferSize"
+      (eventSubmit)="onEventSubmit($event)"
+      (flushBuffer)="onFlushBuffer()"
+      (configUpdate)="onConfigUpdate($event)"
+    >
+    </app-event-controls>
 
-      <div class="service-controls">
-        <button (click)="flushBuffer()" class="btn flush">
-          Flush Buffer Now
-        </button>
-        <div class="config-controls">
-          <label>
-            Buffer Time (ms):
-            <input
-              type="number"
-              [ngModel]="timeFrame"
-              (ngModelChange)="updateBufferTime($event)"
-              min="1000"
-              max="30000"
-              step="1000"
-            />
-          </label>
-          <label>
-            Buffer Size:
-            <input
-              type="number"
-              [ngModel]="maxBufferSize"
-              (ngModelChange)="updateBufferSize($event)"
-              min="5"
-              max="200"
-            />
-          </label>
-          <button (click)="applySettings()" class="btn apply">
-            Apply Settings
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- Log Component -->
+    <app-event-log
+      [eventLog]="eventLog()"
+      [isProcessingBatch]="isProcessingBatch()"
+    >
+    </app-event-log>
 
-    <div class="event-log">
-      <div class="log-header">
-        <h2>Event Log</h2>
-        <div class="batch-indicator" *ngIf="isProcessingBatch()">
-          Processing batch...
-        </div>
-      </div>
-      <div class="log-entries">
-        <div
-          *ngFor="let entry of eventLog()"
-          class="log-entry"
-          [ngClass]="entry.eventType"
-        >
-          <span class="timestamp">{{
-            entry.timestamp | date : "HH:mm:ss.SSS"
-          }}</span>
-          <span class="event-type">{{ entry.eventType }}</span>
-          <span class="count">Count: {{ entry.count }}</span>
-        </div>
-        <div *ngIf="eventLog().length === 0" class="empty-log">
-          No events recorded yet.
-        </div>
-      </div>
-    </div>
-
-    <div class="service-metrics">
-      <h2>Service Metrics</h2>
-      <div class="metrics-grid">
-        <div class="metric-item">
-          <div class="metric-value">{{ totalEventsProcessed() }}</div>
-          <div class="metric-label">Total Events Processed</div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-value">{{ totalBatchesSent() }}</div>
-          <div class="metric-label">Total Batches Sent</div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-value">
-            {{ isProcessingBatch() ? "Yes" : "No" }}
-          </div>
-          <div class="metric-label">Processing Batch</div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-value">{{ averageBatchSize() }}</div>
-          <div class="metric-label">Avg. Batch Size</div>
-        </div>
-      </div>
-    </div>
+    <!-- Metrics Component -->
+    <app-service-metrics
+      [totalEventsProcessed]="totalEventsProcessed()"
+      [totalBatchesSent]="totalBatchesSent()"
+      [isProcessingBatch]="isProcessingBatch()"
+      [averageBatchSize]="averageBatchSize()"
+    >
+    </app-service-metrics>
   </div>
 </main>

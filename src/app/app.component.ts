@@ -2,22 +2,34 @@ import {
   Component,
   signal,
   computed,
-  effect,
   inject,
   OnInit,
   OnDestroy,
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { EventsService, IEventDto } from './events.service';
+import { EventsService } from './events.service';
 import { interval, Subscription } from 'rxjs';
+
+import { BufferStatsComponent } from '../components/buffer-stats/buffer-stats.component';
+import { BufferVisualizationComponent } from '../components/buffer-visualization/buffer-visualization.component';
+import { EventControlsComponent } from '../components/event-controls/event-controls.component';
+import { EventLogComponent } from '../components/event-log/event-log.component';
+import { ServiceMetricsComponent } from '../components/service-metrics/service-metrics.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    BufferStatsComponent,
+    BufferVisualizationComponent,
+    EventControlsComponent,
+    EventLogComponent,
+    ServiceMetricsComponent,
+  ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
+  styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit, OnDestroy {
   private eventsService = inject(EventsService);
@@ -48,6 +60,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private clickTimes: number[] = [];
   private timerSubscription?: Subscription;
   private lastEventTime = Date.now();
+  private hasFirstEvent = false;
 
   // Computed values
   bufferFillPercentage = computed(() => {
@@ -57,6 +70,15 @@ export class AppComponent implements OnInit, OnDestroy {
   timerPercentage = computed(() => {
     return Math.max(0, 100 - (this.timeUntilSend() / this.timeFrame) * 100);
   });
+
+  constructor() {
+    // Setup effect for processing batch state
+    effect(() => {
+      this.isProcessingBatch.set(this.eventsService.isProcessingBatch());
+      this.totalEventsProcessed.set(this.eventsService.totalEventsProcessed());
+      this.totalBatchesSent.set(this.eventsService.totalBatchesSent());
+    });
+  }
 
   ngOnInit(): void {
     // Subscribe to the events service to get buffered events
@@ -68,11 +90,7 @@ export class AppComponent implements OnInit, OnDestroy {
         // Reset queue count
         this.queuedEvents.set(0);
 
-        // Update service metrics
-        this.totalEventsProcessed.set(
-          this.eventsService.totalEventsProcessed()
-        );
-        this.totalBatchesSent.set(this.eventsService.totalBatchesSent());
+        // Update metrics
         this.updateAverageBatchSize(events.length);
       }
     });
@@ -81,21 +99,18 @@ export class AppComponent implements OnInit, OnDestroy {
     this.eventsService.eventsObs$.subscribe((event) => {
       if (event.name !== '_flush') {
         // Ignore flush events
+        this.hasFirstEvent = true;
+
         // Reset the timer when an event is received
         this.resetTimer();
       }
     });
 
-    // Initialize the timer
+    // Initialize the timer but only update UI if events have been received
     this.startTimer();
 
     // Update clicks per second every second
     setInterval(() => this.updateClicksPerSecond(), this.timeFrame);
-
-    // Track processing state
-    effect(() => {
-      this.isProcessingBatch.set(this.eventsService.isProcessingBatch());
-    });
   }
 
   ngOnDestroy(): void {
@@ -105,7 +120,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  sendClickEvent(eventType: string) {
+  onEventSubmit(eventType: string): void {
     // Increment count
     const newCount = this.count() + 1;
     this.count.set(newCount);
@@ -114,7 +129,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.clickTimes.push(Date.now());
 
     // Create event
-    const event: IEventDto = {
+    const event = {
       name: eventType,
       data: newCount,
     };
@@ -132,22 +147,18 @@ export class AppComponent implements OnInit, OnDestroy {
     this.resetTimer();
   }
 
-  flushBuffer() {
-    this.eventsService.flushBuffer();
-
-    // Add to log
+  onFlushBuffer(): void {
+    // Add flush event to log
     this.addEventToLog('flush', this.count());
+
+    // Force service to process events immediately
+    this.eventsService.flushBuffer();
   }
 
-  updateBufferTime(value: number) {
-    this.timeFrame = value;
-  }
+  onConfigUpdate(config: { timeFrame: number; bufferSize: number }): void {
+    this.timeFrame = config.timeFrame;
+    this.maxBufferSize = config.bufferSize;
 
-  updateBufferSize(value: number) {
-    this.maxBufferSize = value;
-  }
-
-  applySettings() {
     this.eventsService.configure({
       delay: this.timeFrame,
       batchSize: this.maxBufferSize,
@@ -160,23 +171,26 @@ export class AppComponent implements OnInit, OnDestroy {
     this.addEventToLog('config', this.count());
   }
 
-  private startTimer() {
+  private startTimer(): void {
     // Create an interval that fires every 100ms to update the countdown timer
     this.timerSubscription = interval(100).subscribe(() => {
-      const now = Date.now();
-      const elapsed = now - this.lastEventTime;
-      const remaining = Math.max(0, this.timeFrame - elapsed);
+      // Only update the timer if there has been at least one event
+      if (this.hasFirstEvent) {
+        const now = Date.now();
+        const elapsed = now - this.lastEventTime;
+        const remaining = Math.max(0, this.timeFrame - elapsed);
 
-      this.timeUntilSend.set(remaining);
+        this.timeUntilSend.set(remaining);
+      }
     });
   }
 
-  private resetTimer() {
+  private resetTimer(): void {
     this.lastEventTime = Date.now();
     this.timeUntilSend.set(this.timeFrame);
   }
 
-  private addEventToLog(eventType: string, count: number) {
+  private addEventToLog(eventType: string, count: number): void {
     this.eventLog.update((log) => {
       const newLog = [...log];
       newLog.unshift({
@@ -194,7 +208,7 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
-  private addBatchEvent(count: number) {
+  private addBatchEvent(count: number): void {
     this.eventLog.update((log) => {
       const newLog = [...log];
       newLog.unshift({
@@ -212,7 +226,7 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
-  private updateClicksPerSecond() {
+  private updateClicksPerSecond(): void {
     const now = Date.now();
     // Keep only clicks from last minute
     this.clickTimes = this.clickTimes.filter((time) => now - time < 60000);
@@ -224,7 +238,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.clicksPerTimeFrame.set(clicksLastTimeFrame);
   }
 
-  private updateAverageBatchSize(latestBatchSize: number) {
+  private updateAverageBatchSize(latestBatchSize: number): void {
     if (this.totalBatchesSent() === 0) return;
 
     // Simple running average calculation

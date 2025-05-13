@@ -1,0 +1,50 @@
+.buffer-visualization {
+  padding: 1.5rem;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+h2 {
+  color: #2c3e50;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.buffer-container,
+.timer-container {
+  height: 30px;
+  background-color: #ecf0f1;
+  border-radius: 15px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.buffer-progress {
+  height: 100%;
+  background-color: #3498db;
+  transition: width 0.3s ease;
+}
+
+.timer-progress {
+  height: 100%;
+  background-color: #e74c3c;
+  transition: width 0.1s linear;
+}
+
+.buffer-label,
+.timer-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2c3e50;
+  font-weight: bold;
+}

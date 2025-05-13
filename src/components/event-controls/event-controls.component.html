@@ -1,0 +1,36 @@
+<div class="event-controls">
+  <div class="event-types">
+    <button (click)="onEventClick('primary')" class="btn primary">
+      Primary Click
+    </button>
+    <button (click)="onEventClick('secondary')" class="btn secondary">
+      Secondary Click
+    </button>
+    <button (click)="onEventClick('tertiary')" class="btn tertiary">
+      Tertiary Click
+    </button>
+  </div>
+
+  <div class="service-controls">
+    <button (click)="onFlushClick()" class="btn flush">Flush Buffer Now</button>
+    <div class="config-controls">
+      <label>
+        Buffer Time (ms):
+        <input
+          type="number"
+          [(ngModel)]="configTimeFrame"
+          min="1000"
+          max="30000"
+          step="1000"
+        />
+      </label>
+      <label>
+        Buffer Size:
+        <input type="number" [(ngModel)]="configBufferSize" min="5" max="200" />
+      </label>
+      <button (click)="onApplySettings()" class="btn apply">
+        Apply Settings
+      </button>
+    </div>
+  </div>
+</div>
