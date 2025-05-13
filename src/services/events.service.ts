@@ -34,8 +34,8 @@ export interface IEventDto {
 })
 export class EventsService {
   // Configuration options with defaults - DELAY is public so components can access the buffer timing
-  public DELAY = 5000; // Time in ms to wait before sending a batch
-  private EVENTS_COUNT_BEFORE_SEND = 100; // Number of events to collect before sending
+  DELAY = 5000; // Time in ms to wait before sending a batch
+  EVENTS_COUNT_BEFORE_SEND = 100; // Number of events to collect before sending
 
   // Internal subjects for event handling
   private eventsSubject = new Subject<IEventDto>();

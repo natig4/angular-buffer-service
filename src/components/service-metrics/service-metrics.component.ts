@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DataService } from '../../services/data.service';
 
 @Component({
   selector: 'app-service-metrics',
@@ -9,8 +10,5 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./service-metrics.component.css'],
 })
 export class ServiceMetricsComponent {
-  @Input() totalEventsProcessed = 0;
-  @Input() totalBatchesSent = 0;
-  @Input() isProcessingBatch = false;
-  @Input() averageBatchSize = 0;
+  dataService = inject(DataService);
 }

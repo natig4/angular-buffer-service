@@ -2,51 +2,10 @@
   <div class="content">
     <h1>RxJS Buffer Service Demo</h1>
 
-    <!-- Stats Component -->
-    <app-buffer-stats
-      [count]="count()"
-      [timeFrame]="timeFrame"
-      [clicksPerTimeFrame]="clicksPerTimeFrame()"
-      [queuedEvents]="queuedEvents()"
-      [timeUntilSend]="timeUntilSend()"
-    >
-    </app-buffer-stats>
-
-    <!-- Visualization Component -->
-    <app-buffer-visualization
-      [queuedEvents]="queuedEvents()"
-      [maxBufferSize]="maxBufferSize"
-      [timeUntilSend]="timeUntilSend()"
-      [timeFrame]="timeFrame"
-      [bufferFillPercentage]="bufferFillPercentage()"
-      [timerPercentage]="timerPercentage()"
-    >
-    </app-buffer-visualization>
-
-    <!-- Controls Component -->
-    <app-event-controls
-      [timeFrame]="timeFrame"
-      [maxBufferSize]="maxBufferSize"
-      (eventSubmit)="onEventSubmit($event)"
-      (flushBuffer)="onFlushBuffer()"
-      (configUpdate)="onConfigUpdate($event)"
-    >
-    </app-event-controls>
-
-    <!-- Log Component -->
-    <app-event-log
-      [eventLog]="eventLog()"
-      [isProcessingBatch]="isProcessingBatch()"
-    >
-    </app-event-log>
-
-    <!-- Metrics Component -->
-    <app-service-metrics
-      [totalEventsProcessed]="totalEventsProcessed()"
-      [totalBatchesSent]="totalBatchesSent()"
-      [isProcessingBatch]="isProcessingBatch()"
-      [averageBatchSize]="averageBatchSize()"
-    >
-    </app-service-metrics>
+    <app-buffer-stats />
+    <app-buffer-visualization />
+    <app-event-controls />
+    <app-event-log />
+    <app-service-metrics />
   </div>
 </main>

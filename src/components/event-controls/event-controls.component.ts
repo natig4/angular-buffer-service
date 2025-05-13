@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DataService } from '../../services/data.service';
 
 @Component({
   selector: 'app-event-controls',
@@ -9,42 +10,27 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './event-controls.component.html',
   styleUrls: ['./event-controls.component.css'],
 })
-export class EventControlsComponent {
-  @Input() timeFrame = 5000;
-  @Input() maxBufferSize = 100;
+export class EventControlsComponent implements OnInit {
+  private dataService = inject(DataService);
 
-  @Output() eventSubmit = new EventEmitter<string>();
-  @Output() flushBuffer = new EventEmitter<void>();
-  @Output() configUpdate = new EventEmitter<{
-    timeFrame: number;
-    bufferSize: number;
-  }>();
-
-  // Internal state for inputs
   configTimeFrame = 5000;
   configBufferSize = 100;
 
   ngOnInit() {
-    this.configTimeFrame = this.timeFrame;
-    this.configBufferSize = this.maxBufferSize;
-  }
-
-  // When inputs change from parent
-  ngOnChanges() {
-    this.configTimeFrame = this.timeFrame;
-    this.configBufferSize = this.maxBufferSize;
+    this.configTimeFrame = this.dataService.timeFrame;
+    this.configBufferSize = this.dataService.maxBufferSize;
   }
 
   onEventClick(eventType: string) {
-    this.eventSubmit.emit(eventType);
+    this.dataService.submitEvent(eventType);
   }
 
   onFlushClick() {
-    this.flushBuffer.emit();
+    this.dataService.flushBuffer();
   }
 
   onApplySettings() {
-    this.configUpdate.emit({
+    this.dataService.updateConfig({
       timeFrame: this.configTimeFrame,
       bufferSize: this.configBufferSize,
     });

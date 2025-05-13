@@ -1,16 +1,20 @@
 <div class="stats">
-  <div class="stat-box"><strong>Click Count:</strong> {{ count }}</div>
   <div class="stat-box">
-    <strong>Clicks Per {{ (timeFrame / 1000).toFixed(1) }}s:</strong>
-    {{ clicksPerTimeFrame }}
+    <strong>Click Count:</strong> {{ dataService.count() }}
   </div>
   <div class="stat-box">
-    <strong>Events in Queue:</strong> {{ queuedEvents }}
+    <strong
+      >Clicks Per {{ (dataService.timeFrame / 1000).toFixed(1) }}s:</strong
+    >
+    {{ dataService.clicksPerTimeFrame() }}
+  </div>
+  <div class="stat-box">
+    <strong>Events in Queue:</strong> {{ dataService.queuedEvents() }}
   </div>
   <div class="stat-box">
     <strong>Time Until Send:</strong>
-    <span [ngClass]="{ urgent: timeUntilSend < 1000 }"
-      >{{ (timeUntilSend / 1000).toFixed(1) }}s</span
+    <span [ngClass]="{ urgent: dataService.timeUntilSend() < 1000 }"
+      >{{ (dataService.timeUntilSend() / 1000).toFixed(1) }}s</span
     >
   </div>
 </div>

@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DataService } from '../../services/data.service';
 
 @Component({
   selector: 'app-buffer-stats',
@@ -9,9 +10,5 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./buffer-stats.component.css'],
 })
 export class BufferStatsComponent {
-  @Input() count = 0;
-  @Input() timeFrame = 5000;
-  @Input() clicksPerTimeFrame = 0;
-  @Input() queuedEvents = 0;
-  @Input() timeUntilSend = 0;
+  dataService = inject(DataService);
 }

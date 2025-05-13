@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DataService } from '../../services/data.service';
 
 @Component({
   selector: 'app-event-log',
@@ -9,11 +10,5 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./event-log.component.css'],
 })
 export class EventLogComponent {
-  @Input() eventLog: Array<{
-    timestamp: Date;
-    eventType: string;
-    count: number;
-  }> = [];
-
-  @Input() isProcessingBatch = false;
+  dataService = inject(DataService);
 }

@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DataService } from '../../services/data.service';
 
 @Component({
   selector: 'app-buffer-visualization',
@@ -9,10 +10,5 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./buffer-visualization.component.css'],
 })
 export class BufferVisualizationComponent {
-  @Input() queuedEvents = 0;
-  @Input() maxBufferSize = 100;
-  @Input() timeUntilSend = 0;
-  @Input() timeFrame = 5000;
-  @Input() bufferFillPercentage = 0;
-  @Input() timerPercentage = 0;
+  dataService = inject(DataService);
 }

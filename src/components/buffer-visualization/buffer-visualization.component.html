@@ -1,15 +1,21 @@
 <div class="buffer-visualization">
   <h2>Buffer Status</h2>
   <div class="buffer-container">
-    <div class="buffer-progress" [style.width.%]="bufferFillPercentage"></div>
+    <div
+      class="buffer-progress"
+      [style.width.%]="dataService.bufferFillPercentage()"
+    ></div>
     <div class="buffer-label">
-      {{ queuedEvents }} / {{ maxBufferSize }} events
+      {{ dataService.queuedEvents() }} / {{ dataService.maxBufferSize }} events
     </div>
   </div>
   <div class="timer-container">
-    <div class="timer-progress" [style.width.%]="timerPercentage"></div>
+    <div
+      class="timer-progress"
+      [style.width.%]="dataService.timerPercentage()"
+    ></div>
     <div class="timer-label">
-      {{ (timeUntilSend / 1000).toFixed(1) }}s remaining
+      {{ (dataService.timeUntilSend() / 1000).toFixed(1) }}s remaining
     </div>
   </div>
 </div>
