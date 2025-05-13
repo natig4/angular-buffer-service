@@ -2,7 +2,7 @@
 
 A demonstration application showcasing a reactive buffering pattern for handling high-frequency events in Angular applications using RxJS.
 
-![Angular Buffer Service Demo Screenshot](https://natig4.github.io/angular-buffer-service/)
+**[View Live Demo](https://natig4.github.io/angular-buffer-service/)**
 
 ## Overview
 
@@ -131,6 +131,43 @@ ngOnInit() {
 }
 ```
 
+## Implementation Details
+
+The buffer service uses a combination of RxJS operators to create an efficient event processing pipeline:
+
+```typescript
+this.eventsSubject
+  .pipe(
+    // Store events in our currentBuffer variable
+    tap((event) => {
+      this.currentBuffer.push(event);
+      this.lastEventTimestamp = Date.now();
+      this.bufferSizeSubject.next(this.currentBuffer.length);
+    }),
+    // Buffer events based on either time delay, count threshold, or explicit flush
+    bufferWhen(() =>
+      race([
+        // Condition 1: Time-based buffer - triggers after DELAY ms of inactivity
+        this.eventsSubject.pipe(delay(this.DELAY)),
+
+        // Condition 2: Count-based buffer - triggers after collecting EVENTS_COUNT_BEFORE_SEND events
+        this.eventsSubject.pipe(bufferCount(this.EVENTS_COUNT_BEFORE_SEND)),
+
+        // Condition 3: Manual flush trigger
+        this.flushSubject.asObservable(),
+      ])
+    ),
+    // Process batched events
+    switchMap((events) => {
+      // In a real application, you would send these events to your backend
+      // ...
+    })
+  )
+  .subscribe({
+    // Handle success/error cases
+  });
+```
+
 ## Customization
 
 ### Buffer Service Configuration
@@ -175,6 +212,15 @@ The application is built with a modern Angular architecture:
 - **Signal-based State Management**: Reactive state using Angular's signals API
 - **Service-Component Communication**: Clean separation of concerns between services and components
 - **Computed Values**: Derived state calculated from base signals
+
+## Performance Benefits
+
+Using the buffer pattern can significantly reduce:
+
+- Network requests: By grouping multiple events into a single request
+- Server load: By reducing the number of connections and requests
+- Client resource usage: By minimizing DOM updates and processing overhead
+- Perceived latency: By handling events in the background without blocking the UI
 
 ## Contributing
 
